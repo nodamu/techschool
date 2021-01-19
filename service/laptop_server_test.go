@@ -47,7 +47,7 @@ func TestServerCreateLaptop(t *testing.T) {
 		},
 		{
 			name:   "failure_invalid_id",
-			laptop: laptopNoID,
+			laptop: laptopInvalidID,
 			store:  service.NewInMemoryLaptopStore(),
 			code:   codes.InvalidArgument,
 		},
