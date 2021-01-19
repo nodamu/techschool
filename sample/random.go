@@ -4,8 +4,9 @@ import (
 	"math/rand"
 	"time"
 
+	"nodamu/pcbook/pb"
+
 	"github.com/google/uuid"
-	"gitlab.com/techschool/pcbook/pb"
 )
 
 func init() {

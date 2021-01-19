@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log"
 	"nodamu/pcbook/pb"
 
@@ -38,5 +39,22 @@ func (server *LaptopServer) CreateLaptop(ctx context.Context, req *pb.CreateLapt
 		laptop.Id = id.String()
 	}
 	//save the laptop to in-memory store
+	err := server.Store.Save(laptop)
 
+	if err != nil {
+		code := codes.Internal
+		if errors.Is(err, ErrorAlreadyExists) {
+			code = codes.AlreadyExists
+		}
+		return nil, status.Errorf(code, "cannot save laptop to store: %v", err)
+
+	}
+
+	log.Printf("Saved laptop with id: %s", laptop.Id)
+
+	res := &pb.CreateLaptopResponse{
+		Id: laptop.Id,
+	}
+
+	return res, nil
 }
