@@ -3,8 +3,9 @@ package service
 import (
 	"errors"
 	"fmt"
-	"nodamu/pcbook/pb"
 	"sync"
+
+	"github.com/nodamu/techschool/pb"
 
 	"github.com/jinzhu/copier"
 )

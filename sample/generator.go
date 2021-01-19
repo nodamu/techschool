@@ -1,7 +1,7 @@
 package sample
 
 import (
-	"nodamu/pcbook/pb"
+	"github.com/nodamu/techschool/pb"
 
 	"github.com/golang/protobuf/ptypes"
 )

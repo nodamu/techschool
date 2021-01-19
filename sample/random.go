@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"time"
 
-	"nodamu/pcbook/pb"
+	"github.com/nodamu/techschool/pb"
 
 	"github.com/google/uuid"
 )

@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/nodamu/techschool/pb"
 	"log"
-	"nodamu/pcbook/pb"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
