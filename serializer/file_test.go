@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	pb "github.com/nodamu/techschool/pb"
+	"github.com/nodamu/techschool/sample"
+	serializer "github.com/nodamu/techschool/serializer"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/techschool/pcbook/pb"
-	"gitlab.com/techschool/pcbook/sample"
-	"gitlab.com/techschool/pcbook/serializer"
 )
 
 func TestFileSerializer(t *testing.T) {
