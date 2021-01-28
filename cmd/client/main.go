@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"time"
 
 	"github.com/nodamu/techschool/pb"
 	"github.com/nodamu/techschool/sample"
@@ -26,12 +27,16 @@ func main() {
 	laptopClient := pb.NewLaptopServiceClient(conn)
 
 	laptop := sample.NewLaptop()
-
 	req := &pb.CreateLaptopRequest{
 		Laptop: laptop,
 	}
 
-	res, err := laptopClient.CreateLaptop(context.Background(), req)
+	//set timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+	defer cancel()
+
+	res, err := laptopClient.CreateLaptop(ctx, req)
 
 	if err != nil {
 		st, ok := status.FromError(err)
