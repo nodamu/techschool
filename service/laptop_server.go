@@ -14,12 +14,13 @@ import (
 
 // LaptopServer is the server that provides the laptop service
 type LaptopServer struct {
-	Store LaptopStore
+	latopStore LaptopStore
+	imageStore ImageStore
 }
 
 // NewLaptopServer returns a new NewLaptopServer
-func NewLaptopServer(store LaptopStore) *LaptopServer {
-	return &LaptopServer{store}
+func NewLaptopServer(laptopStore LaptopStore, imageStore ImageStore) *LaptopServer {
+	return &LaptopServer{laptopStore, imageStore}
 }
 
 // CreateLaptop is a unary RPC to create a new laptop
@@ -54,7 +55,7 @@ func (server *LaptopServer) CreateLaptop(ctx context.Context, req *pb.CreateLapt
 	}
 
 	//save the laptop to in-memory store
-	err := server.Store.Save(laptop)
+	err := server.latopStore.Save(laptop)
 
 	if err != nil {
 		code := codes.Internal
@@ -79,7 +80,7 @@ func (server *LaptopServer) SearchLaptop(req *pb.SearchLaptopRequest, stream pb.
 	filter := req.GetFilter()
 	log.Printf("receive a search-laptop request with filter: %v", filter)
 
-	err := server.Store.Search(
+	err := server.latopStore.Search(
 		stream.Context(),
 		filter,
 		func(laptop *pb.Laptop) error {
