@@ -94,7 +94,8 @@ func (store *InMemoryLaptopStore) Search(
 
 	for _, laptop := range store.data {
 
-		log.Print("checking laptop id: ", laptop.GetId())
+		// time.Sleep(time.Second)
+		// log.Print("checking laptop id: ", laptop.GetId())
 
 		if ctx.Err() == context.DeadlineExceeded {
 			log.Println("context is cancelled")
