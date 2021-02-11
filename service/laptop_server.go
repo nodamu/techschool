@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log"
-	"time"
 
 	"github.com/nodamu/techschool/pb"
 
@@ -42,7 +41,7 @@ func (server *LaptopServer) CreateLaptop(ctx context.Context, req *pb.CreateLapt
 	}
 
 	//Simulate heavy processing
-	time.Sleep(6 * time.Second)
+	// time.Sleep(6 * time.Second)
 
 	if ctx.Err() == context.Canceled {
 		log.Print("request is cancelled")
@@ -81,6 +80,7 @@ func (server *LaptopServer) SearchLaptop(req *pb.SearchLaptopRequest, stream pb.
 	log.Printf("receive a search-laptop request with filter: %v", filter)
 
 	err := server.Store.Search(
+		stream.Context(),
 		filter,
 		func(laptop *pb.Laptop) error {
 			res := &pb.SearchLaptopResponse{Latpop: laptop}

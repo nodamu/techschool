@@ -1,8 +1,10 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/nodamu/techschool/pb"
@@ -22,7 +24,7 @@ type LaptopStore interface {
 	Find(id string) (*pb.Laptop, error)
 
 	// Search searches for laptops with filter, returns one by one via the found function
-	Search(filter *pb.Filter, found func(laptop *pb.Laptop) error) error
+	Search(ctx context.Context, filter *pb.Filter, found func(laptop *pb.Laptop) error) error
 }
 
 // InMemoryLaptopStore stores laptop in memory
@@ -83,6 +85,7 @@ func (store *InMemoryLaptopStore) Find(id string) (*pb.Laptop, error) {
 
 // Search searches for laptops with filter, returns one by one via the found function
 func (store *InMemoryLaptopStore) Search(
+	ctx context.Context,
 	filter *pb.Filter,
 	found func(laptop *pb.Laptop) error,
 ) error {
@@ -91,8 +94,12 @@ func (store *InMemoryLaptopStore) Search(
 
 	for _, laptop := range store.data {
 
-		// time.Sleep(time.Second)
-		// log.Print("checking laptop id: ", laptop.GetId())
+		log.Print("checking laptop id: ", laptop.GetId())
+
+		if ctx.Err() == context.DeadlineExceeded {
+			log.Println("context is cancelled")
+			return errors.New("context is cancelled")
+		}
 
 		if isQualified(filter, laptop) {
 			other, err := deepCopy(laptop)
