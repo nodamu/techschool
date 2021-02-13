@@ -48,16 +48,9 @@ func (server *LaptopServer) CreateLaptop(ctx context.Context, req *pb.CreateLapt
 	//Simulate heavy processing
 	// time.Sleep(6 * time.Second)
 
-	if ctx.Err() == context.Canceled {
-		log.Print("request is cancelled")
-		return nil, status.Error(codes.Canceled, "request is canceled")
+	if err := contextError(ctx); err != nil {
+		return nil, err
 	}
-
-	if ctx.Err() == context.DeadlineExceeded {
-		log.Printf("deadline is exceeded")
-		return nil, status.Error(codes.DeadlineExceeded, "deadline is exceeded")
-	}
-
 	//save the laptop to in-memory store
 	err := server.latopStore.Save(laptop)
 
@@ -77,6 +70,19 @@ func (server *LaptopServer) CreateLaptop(ctx context.Context, req *pb.CreateLapt
 	}
 
 	return res, nil
+}
+
+func contextError(ctx context.Context) error {
+	switch ctx.Err() {
+	case context.Canceled:
+		return logError(status.Error(codes.Canceled, "request is canceled"))
+
+	case context.DeadlineExceeded:
+		return logError(status.Error(codes.DeadlineExceeded, "deadline is exceeded"))
+
+	default:
+		return nil
+	}
 }
 
 // SearchLaptop is a server-streaming RPC to search for laptops
@@ -131,6 +137,10 @@ func (server *LaptopServer) UploadImage(stream pb.LaptopService_UploadImageServe
 	imageSize := 0
 
 	for {
+
+		if err := contextError(stream.Context()); err != nil {
+			return err
+		}
 		log.Printf("waiting to receive more data")
 
 		req, err := stream.Recv()
@@ -145,6 +155,8 @@ func (server *LaptopServer) UploadImage(stream pb.LaptopService_UploadImageServe
 
 		chunk := req.GetChunkData()
 		size := len(chunk)
+
+		log.Printf("received a chunk with size: %d", size)
 
 		imageSize += size
 		if imageSize > maxImageSize {
