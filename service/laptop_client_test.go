@@ -1,9 +1,14 @@
 package service_test
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"io"
+	"log"
 	"net"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/nodamu/techschool/pb"
@@ -146,4 +151,80 @@ func TestClientSearchLaptop(t *testing.T) {
 	}
 
 	require.Equal(t, len(expectedIDs), found)
+}
+
+func TestClientUploadImage(t *testing.T) {
+	t.Parallel()
+
+	testImageFolder := "../tmp"
+
+	laptopStore := service.NewInMemoryLaptopStore()
+	imageStore := service.NewDiskImageStore(testImageFolder)
+
+	laptop := sample.NewLaptop()
+	err := laptopStore.Save(laptop)
+	require.NoError(t, err)
+
+	serverAddress := startTestLaptopServer(t, laptopStore, imageStore)
+	laptopClient := newTestLaptopClient(t, serverAddress)
+
+	imagePath := fmt.Sprintf("%s/test.jpg", testImageFolder)
+	file, err := os.Open(imagePath)
+
+	require.NoError(t, err)
+	defer file.Close()
+
+	stream, err := laptopClient.UploadImage(context.Background())
+	require.NoError(t, err)
+
+	imageType := filepath.Ext(imagePath)
+
+	req := &pb.UploadImageRequest{
+		Data: &pb.UploadImageRequest_Info{
+			Info: &pb.ImageInfo{
+				LaptopId:  laptop.GetId(),
+				ImageType: filepath.Ext(imagePath),
+			},
+		},
+	}
+
+	err = stream.Send(req)
+	require.NoError(t, err)
+	if err != nil {
+		log.Fatal("cannot send image: ", err, stream.RecvMsg(nil))
+	}
+
+	reader := bufio.NewReader(file) //Read file path
+	buffer := make([]byte, 1024)    // buffer with size of 1Kb
+	size := 0
+
+	// loop over image data chunks to buffer
+	for {
+		n, err := reader.Read(buffer) //Read data to the buffer
+		if err == io.EOF {
+			break
+		}
+
+		require.NoError(t, err)
+		size += n
+
+		req := &pb.UploadImageRequest{
+			Data: &pb.UploadImageRequest_ChunkData{
+				ChunkData: buffer[:n],
+			},
+		}
+		err = stream.Send(req)
+		require.NoError(t, err)
+
+	}
+
+	res, err := stream.CloseAndRecv()
+	require.NoError(t, err)
+	require.NotZero(t, res.Id)
+	require.EqualValues(t, size, res.GetSize())
+
+	savedImagePath := fmt.Sprintf("%s/%s%s", testImageFolder, res.GetId(), imageType)
+
+	require.FileExists(t, savedImagePath)
+	require.NoError(t, os.Remove(savedImagePath))
 }

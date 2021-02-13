@@ -160,7 +160,7 @@ func (server *LaptopServer) UploadImage(stream pb.LaptopService_UploadImageServe
 
 		imageSize += size
 		if imageSize > maxImageSize {
-			return logError(status.Errorf(codes.InvalidArgument, "image is too large: %d", imageSize, maxImageSize))
+			return logError(status.Errorf(codes.InvalidArgument, "image is too large: %d", imageSize))
 		}
 
 		_, err = imageData.Write(chunk)
